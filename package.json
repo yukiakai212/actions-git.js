@@ -7,8 +7,7 @@
   "types": "./dist/public.d.ts",
   "exports": {
     "types": "./dist/public.d.ts",
-    "import": "./dist/public.js",
-    "require": "./dist/public.cjs"
+    "import": "./dist/public.js"
   },
   "scripts": {
     "test": "npx vitest run --reporter verbose --coverage",

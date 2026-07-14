@@ -1,7 +1,5 @@
 import { ExecOptions } from '@actions/exec';
 
-type GitExecOptions = Omit<ExecOptions, 'cwd'>;
-type GitInspectableOptions = Omit<GitExecOptions, 'ignoreReturnCode'>;
 interface GitExecResult {
     exitCode: number;
 }
@@ -31,4 +29,4 @@ declare class GitClient {
     private branchExists;
 }
 
-export { GitClient, type GitExecOptions, type GitExecResult, type GitInspectableOptions, type GitOptions };
+export { GitClient, type GitOptions };
