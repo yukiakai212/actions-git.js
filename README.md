@@ -2,36 +2,27 @@
 
 > Lightweight Git client for GitHub Actions and CI workflows.
 
-A small, promise-based wrapper around `git` built for automation workflows such as:
+`@yukiakai/actions-git` prepares a Git repository for automated workflows.
 
-- Deploy actions
-- Artifact publishing
-- Docs deployment
-- CI synchronization
-- Temporary repository workflows
-
-Designed to be:
-- Minimal
-- Predictable
-- CI-friendly
-- Easy to test
+The library handles repository setup for you—including cloning, branch initialization, and Git identity configuration—then returns a repository that is ready to commit and push.
 
 ---
 
-## Features
+# Features
 
-- Shallow clone with automatic fallback
-- Branch existence detection
-- Orphan branch support
-- Workspace wipe utilities
-- Simple commit/push workflow
-- Promise-based API
-- TypeScript support
-- Designed for GitHub Actions
+* Ready-to-use Git repository
+* Automatic remote branch detection
+* Shallow clone with automatic fallback
+* Automatic orphan branch initialization
+* Configurable Git identity
+* Simple staging, commit and push workflow
+* Promise-based API
+* Fully typed
+* Designed for GitHub Actions and CI
 
 ---
 
-## Installation
+# Installation
 
 ```bash
 npm install @yukiakai/actions-git
@@ -39,123 +30,115 @@ npm install @yukiakai/actions-git
 
 ---
 
-## Example
+# Quick Start
 
 ```ts
-import { GitClient } from '@yukiakai/actions-git';
+import {
+  prepareGitRepository,
+  GITHUB_ACTIONS_IDENTITY,
+} from '@yukiakai/actions-git';
 
-const git = new GitClient({
-  repo: 'owner/repo',
+const repository = await prepareGitRepository({
+  repository: 'owner/repository',
   token: process.env.GITHUB_TOKEN!,
   branch: 'gh-pages',
-  cwd: './.deploy',
+  workingDirectory: '.deploy',
+
+  identity: GITHUB_ACTIONS_IDENTITY,
 });
 
-await git.clone();
+await repository.wipe(['.']);
 
-await git.setup();
+await repository.add(['dist']);
 
-await git.checkout();
+await repository.commit('deploy: update documentation');
 
-await git.wipe(['.']);
-
-await git.add(['dist']);
-
-if (await git.hasChanges()) {
-  await git.commit('deploy: update docs');
-
-  await git.push();
+if (await repository.hasStagedChanges()) {
+  
+  await repository.push();
 }
 ```
 
 ---
 
-## API
+# API
 
-### `new GitClient(options)`
+## `prepareGitRepository(options)`
 
-Creates a new Git client instance.
+Prepare a repository for automated Git workflows.
 
 ```ts
-type GitOptions = {
-  repo: string;
+interface PrepareGitRepositoryOptions {
+  repository: string;
   token: string;
   branch: string;
-  cwd: string;
-};
+  workingDirectory: string;
+
+  identity: GitIdentity;
+}
+```
+
+Returns:
+
+```ts
+Promise<PreparedGitRepository>
+```
+
+The returned repository only exposes workflow operations. Repository initialization APIs are intentionally kept internal.
+
+---
+
+# Built-in Identities
+
+The library provides reusable identities for common CI environments.
+
+## `GITHUB_ACTIONS_IDENTITY`
+
+```ts
+import {
+  GITHUB_ACTIONS_IDENTITY,
+} from '@yukiakai/actions-git';
+```
+
+Equivalent to:
+
+```ts
+{
+  name: 'github-actions[bot]',
+  email: 'github-actions[bot]@users.noreply.github.com',
+}
+```
+
+You can also provide your own identity.
+
+```ts
+identity: {
+  name: 'Yuki Akai',
+  email: 'yuki@example.com',
+}
 ```
 
 ---
 
-# Methods
+# PreparedGitRepository
 
-## `clone()`
-
-Clone the repository into the target working directory.
-
-Attempts shallow clone first:
-
-```bash
-git clone --depth=1 --branch <branch>
-```
-
-Falls back to full clone if shallow clone fails.
-
----
-
-## `setup()`
-
-Configure git identity for CI environments.
-
-Sets:
-
-```bash
-user.name  = github-actions[bot]
-user.email = github-actions[bot]@users.noreply.github.com
-```
-
----
-
-## `checkout()`
-
-Checkout the target branch.
-
-Behavior:
-
-- If the branch exists:
-  - `git checkout <branch>`
-
-- If the branch does not exist:
-  - creates orphan branch
-  - wipes working tree
+Represents a repository that has already been prepared for write operations.
 
 ---
 
 ## `wipe(patterns)`
 
-Remove tracked and untracked files from the working tree.
+Remove tracked and untracked files.
 
 ```ts
-await git.wipe(['.']);
+await repository.wipe(['.']);
 ```
 
-Internally runs:
+Internally executes:
 
 ```bash
 git rm -r -f --ignore-unmatch
 git clean -fdx
-```
-
-Useful for deployment workflows where the workspace must be fully reset.
-
----
-
-## `pullRebase()`
-
-Run:
-
-```bash
-git pull --rebase origin <branch>
 ```
 
 ---
@@ -165,8 +148,28 @@ git pull --rebase origin <branch>
 Stage files.
 
 ```ts
-await git.add(['dist', 'package.json']);
+await repository.add([
+  'dist',
+  'package.json',
+]);
 ```
+
+---
+
+## `hasStagedChanges()`
+
+Check whether staged changes exist.
+
+Internally executes:
+
+```bash
+git diff --cached --quiet
+```
+
+Returns:
+
+* `true` if staged changes exist.
+* `false` otherwise.
 
 ---
 
@@ -175,52 +178,63 @@ await git.add(['dist', 'package.json']);
 Create a commit.
 
 ```ts
-await git.commit('deploy: update docs');
+await repository.commit(
+  'deploy: update documentation',
+);
 ```
 
 ---
 
 ## `push()`
 
-Push the current branch to origin.
+Push the current checked-out branch.
 
 ```ts
-await git.push();
+await repository.push();
 ```
+
+The current `HEAD` is pushed to `origin`.
 
 ---
 
-## `hasChanges()`
-
-Check whether staged changes exist.
+# Typical Workflow
 
 ```ts
-const changed = await git.hasChanges();
+const repository = await prepareGitRepository({
+  repository: 'owner/repository',
+  token: process.env.GITHUB_TOKEN!,
+  branch: 'gh-pages',
+  workingDirectory: '.deploy',
+
+  identity: GITHUB_ACTIONS_IDENTITY,
+});
+
+await repository.wipe(['.']);
+
+await repository.add(['dist']);
+
+await repository.commit('deploy');
+if (!await repository.hasStagedChanges()) {
+  return;
+}
+
+await repository.push();
 ```
-
-Uses:
-
-```bash
-git diff --cached --quiet
-```
-
-Returns:
-- `true` → changes exist
-- `false` → no changes
 
 ---
 
-## Use Cases
+# Designed For
 
-- GitHub Actions
-- Documentation deployment
-- Artifact deployment
-- Monorepo publishing
-- Static site deployment
-- CI repository sync
+* GitHub Actions
+* Documentation deployment
+* Static site deployment
+* Repository synchronization
+* Artifact publishing
+* Deployment pipelines
+* CI automation
 
 ---
 
-## License
+# License
 
-MIT Yuki Akai
+MIT © Yuki Akai
