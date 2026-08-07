@@ -51,10 +51,9 @@ await repository.wipe(['.']);
 
 await repository.add(['dist']);
 
-await repository.commit('deploy: update documentation');
 
 if (await repository.hasStagedChanges()) {
-  
+  await repository.commit('deploy: update documentation');
   await repository.push();
 }
 ```
@@ -213,10 +212,11 @@ await repository.wipe(['.']);
 
 await repository.add(['dist']);
 
-await repository.commit('deploy');
 if (!await repository.hasStagedChanges()) {
   return;
 }
+
+await repository.commit('deploy');
 
 await repository.push();
 ```

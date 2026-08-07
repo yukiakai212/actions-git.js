@@ -12,7 +12,7 @@ declare class GitRepository {
     private options;
     constructor(options: GitRepositoryOptions);
     private execute;
-    private execInspectable;
+    private executeInspectable;
     wipe(pattern: string[]): Promise<void>;
     setupIdentity(identity: GitIdentity): Promise<void>;
     checkout(branch: string): Promise<void>;
