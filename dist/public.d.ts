@@ -1,8 +1,16 @@
 type AbsoluteDirectoryPath = string;
 
+interface GitInspectionResult {
+    exitCode: number;
+}
 interface GitIdentity {
     readonly name: string;
     readonly email: string;
+}
+declare enum GitInspectionOperation {
+    StagedChangesPresence = "stagedChangesPresence",
+    LocalBranchPresence = "localBranchPresence",
+    RemoteBranchPresence = "remoteBranchPresence"
 }
 
 interface GitRepositoryOptions {
@@ -39,4 +47,15 @@ declare function prepareGitRepository(options: PrepareGitRepositoryOptions): Pro
 
 declare const GITHUB_ACTIONS_IDENTITY: GitIdentity;
 
-export { type AbsoluteDirectoryPath, GITHUB_ACTIONS_IDENTITY, type GitIdentity, GitRepository, type PrepareGitRepositoryOptions, type PreparedGitRepository, prepareGitRepository };
+interface UnexpectedGitInspectionResultErrorOptions {
+    readonly result: GitInspectionResult;
+    readonly operation: GitInspectionOperation;
+}
+type UnexpectedGitInspectionResultErrorDetails = UnexpectedGitInspectionResultErrorOptions;
+declare class UnexpectedGitInspectionResultError extends Error {
+    private options;
+    readonly details: UnexpectedGitInspectionResultErrorDetails;
+    constructor(options: UnexpectedGitInspectionResultErrorOptions);
+}
+
+export { type AbsoluteDirectoryPath, GITHUB_ACTIONS_IDENTITY, type GitIdentity, GitInspectionOperation, type GitInspectionResult, GitRepository, type PrepareGitRepositoryOptions, type PreparedGitRepository, UnexpectedGitInspectionResultError, type UnexpectedGitInspectionResultErrorDetails, type UnexpectedGitInspectionResultErrorOptions, prepareGitRepository };

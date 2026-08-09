@@ -1,6 +1,6 @@
 {
   "name": "@yukiakai/actions-git",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Lightweight Git client for GitHub Actions and CI workflows.",
   "type": "module",
   "main": "./dist/public.js",
