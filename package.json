@@ -1,6 +1,6 @@
 {
   "name": "@yukiakai/actions-git",
-  "version": "2.1.0",
+  "version": "6.0.0",
   "description": "Lightweight Git client for GitHub Actions and CI workflows.",
   "type": "module",
   "main": "./dist/public.js",
@@ -11,8 +11,8 @@
   },
   "scripts": {
     "test": "echo npx vitest run --reporter verbose --coverage",
-    "format": "prettier --write **/*.{js,ts,json}",
-    "format:check": "prettier --check **/*.{js,ts,json}",
+    "format": "prettier --write **/*.{ts,json,yml}",
+    "format:check": "prettier --check **/*.{ts,json,yml}",
     "lint": "eslint src/**/*.ts",
     "typecheck:workspace": "tsc -p tsconfig.workspace.json",
     "generate:types": "npx type-export-builder generate -p src/_public.ts",
@@ -57,7 +57,7 @@
     "@eslint/js": "^9.30.1",
     "@types/node": "^24.0.10",
     "@vitest/coverage-v8": "^4.0.15",
-    "@yukiakai/artifact": "^1.0.1",
+    "@yukiakai/artifact": "^2.0.1",
     "dotenv": "^17.0.1",
     "eslint": "^9.30.0",
     "husky": "^9.1.7",
